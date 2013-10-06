@@ -144,10 +144,10 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
         auth_dec = auth_enc.decode('base64')
         sid, colon, passwd = auth_dec.partition(':')
         assert colon == ':', 'assault maybe'  # the second will be the separator itself
+        if not sid or not passwd:
+            raise HeartBrokenError('empty student number or password')
         if not sid.isdigit():
             raise HeartBrokenError('student number must be an integer')
-        if not passwd:
-            raise HeartBrokenError('empty password')
         self.log_message('%s is logging in', sid)
         return sid, passwd
 
