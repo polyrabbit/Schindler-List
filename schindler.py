@@ -12,7 +12,7 @@ import threading
 import urllib
 import urllib2
 
-PORT = 8080
+PORT = 80
 studentof = {} # a map between students and ips
 
 class HeartBrokenError(Exception): pass
