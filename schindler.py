@@ -33,6 +33,7 @@ class AsyncFile(file):
         with open(self.fname, 'a') as fout:
             while True:
                 fout.write(self.que.get())
+                fout.flush()
 
 class BoundedThreadingServer(SocketServer.ThreadingTCPServer, object):  # object for super
     allow_reuse_address = True
