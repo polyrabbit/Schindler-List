@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #coding: utf-8
 import BaseHTTPServer
+import ctypes
 import Queue
 import SocketServer
 import os
@@ -60,15 +61,22 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
 
     # from the great Goagent
     __set_error_color = lambda c : None
+    __set_success_color = lambda c: None
     __reset_color = lambda c : None
     if hasattr(sys.stderr, 'isatty') and sys.stderr.isatty():
         if os.name == 'nt':
-            import ctypes
-            SetConsoleTextAttribute = ctypes.windll.kernel32.SetConsoleTextAttribute
-            GetStdHandle = ctypes.windll.kernel32.GetStdHandle
-            __set_error_color = lambda c : SetConsoleTextAttribute(GetStdHandle(-11), 0x04)
-            __set_success_color = lambda c : SetConsoleTextAttribute(GetStdHandle(-11), 0x002)
-            __reset_color = lambda c : SetConsoleTextAttribute(GetStdHandle(-11), 0x07)
+            def __set_error_color(cls):
+                SetConsoleTextAttribute = ctypes.windll.kernel32.SetConsoleTextAttribute
+                GetStdHandle = ctypes.windll.kernel32.GetStdHandle
+                SetConsoleTextAttribute(GetStdHandle(-11), 0x04)
+            def __set_success_color(cls):
+                SetConsoleTextAttribute = ctypes.windll.kernel32.SetConsoleTextAttribute
+                GetStdHandle = ctypes.windll.kernel32.GetStdHandle
+                SetConsoleTextAttribute(GetStdHandle(-11), 0x02)
+            def __reset_color(cls):
+                SetConsoleTextAttribute = ctypes.windll.kernel32.SetConsoleTextAttribute
+                GetStdHandle = ctypes.windll.kernel32.GetStdHandle
+                SetConsoleTextAttribute(GetStdHandle(-11), 0x07)
         elif os.name == 'posix':
             __set_error_color = lambda c : sys.stderr.write('\033[31m')
             __set_success_color = lambda c : sys.stderr.write('\033[32m')
