@@ -16,24 +16,6 @@ studentof = {} # a map between students and ips
 
 class HeartBrokenError(Exception): pass
 
-class AsyncFile(file):
-
-    def __init__(self, fname):
-        self.que = Queue.Queue()
-        self.fname = fname
-        th = threading.Thread(target=self._write)
-        th.daemon = True # unsafe to be a daemon, need to find another way
-        th.start()
-
-    def write(self, data):
-        self.que.put(data)
-
-    def _write(self):
-        with open(self.fname, 'a') as fout:
-            while True:
-                fout.write(self.que.get())
-                fout.flush()
-
 class Console(object):
     lock = threading.Lock()
 
@@ -94,10 +76,8 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
     result_fname = "Schindler'List.txt"
 
     rfn = os.path.join(os.path.dirname(__file__), result_fname)
-    if os.path.exists(rfn):
-        print 'Removing old data "%s"' % rfn
-        os.unlink(rfn)
-    fout = AsyncFile(rfn)
+    # 0 means unbuffered, 1 means line buffered
+    fout = open(rfn, 'w', 1)
 
     def do_GET(self):
         ip = self.client_address[0]
@@ -134,6 +114,7 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
                 self.log_error('An error occured while %s is logging in "%s"', sid, e)
                 self.send_401()
             else:
+                # A legend goes that, file.write is atomic, I dunno
                 self.fout.write('%s\t%-9s\t%-12s\t%s\n' % (self.log_date_time_string(),
                         stu.sid, stu.name, stu.ip))
                 studentof[ip] = stu
