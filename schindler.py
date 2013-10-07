@@ -71,8 +71,8 @@ class BoundedThreadingServer(SocketServer.ThreadingTCPServer, object):  # object
 
 class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
 
-    server_version = "Schindler'List/0.1"
-    result_fname = "Schindler'List.txt"
+    server_version = "Schindler'sList/0.1"
+    result_fname = "Schindler'sList.txt"
 
     rfn = os.path.join(os.path.dirname(__file__), result_fname)
     # 0 means unbuffered, 1 means line buffered
