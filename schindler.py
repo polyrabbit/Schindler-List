@@ -247,8 +247,10 @@ class GraduateStudent(StudentMixin):
 
 def whats_my_sexual_ip():
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 80))
+        # Pretty smart to use UDP, connection in UDP will (almostly)always success,
+        # and no data exchange, correct me if you can.
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
+        s.connect(('8.8.8.8', 53))
         return s.getsockname()[0]
     except:
         return '127.0.0.1'
