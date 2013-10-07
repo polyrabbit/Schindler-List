@@ -187,6 +187,7 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
 
 
 class StudentMixin(object):
+    connection_timeout= 10
     ua = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; Schindler'sList/0.1)"
 
     def __init__(self, ip, sid, passwd, name='张三'):  # name should be in utf-8
@@ -204,7 +205,7 @@ class StudentMixin(object):
 
     def login(self):
         payload = self.post_data()
-        resp = self.opener.open(self.login_url, payload)
+        resp = self.opener.open(self.login_url, payload, self.connection_timeout)
         # I don't whether re is thread safe
         name_patt = re.compile(self.name_re, re.U)
         encoding = self.page_encoding(resp.info())
