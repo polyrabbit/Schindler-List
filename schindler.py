@@ -1,5 +1,14 @@
 #!/usr/bin/env python
 #coding: utf-8
+
+# (c) 2012-2013, polyrabbit <mcx_221@foxmail.com>
+#
+# LGPL v3 license.
+#
+# Feedbacks and suggestions are always welcome on
+# https://github.com/polyrabbit/Schindler-List/issues
+#
+
 import BaseHTTPServer
 import SocketServer
 import os
