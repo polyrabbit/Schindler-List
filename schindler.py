@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 #coding: utf-8
 import BaseHTTPServer
-import ctypes
 import Queue
 import SocketServer
 import os
@@ -35,6 +34,46 @@ class AsyncFile(file):
                 fout.write(self.que.get())
                 fout.flush()
 
+class Console(object):
+    lock = threading.Lock()
+
+    def __init__(self):
+        # from the great Goagent
+        self.__set_error_color = lambda: None
+        self.__set_warning_color = lambda: None
+        self.__set_debug_color = lambda: None
+        self.__reset_color = lambda: None
+        if hasattr(sys.stderr, 'isatty') and sys.stderr.isatty():
+            if os.name == 'nt':
+                import ctypes
+                SetConsoleTextAttribute = ctypes.windll.kernel32.SetConsoleTextAttribute
+                GetStdHandle = ctypes.windll.kernel32.GetStdHandle
+                self.__set_error_color = lambda: SetConsoleTextAttribute(GetStdHandle(-11), 0x04)
+                self.__set_success_color = lambda: SetConsoleTextAttribute(GetStdHandle(-11), 0x02)
+                self.__reset_color = lambda: SetConsoleTextAttribute(GetStdHandle(-11), 0x07)
+            elif os.name == 'posix':
+                self.__set_error_color = lambda: sys.stderr.write('\033[31m')
+                self.__set_success_color = lambda: sys.stderr.write('\033[32m')
+                self.__reset_color = lambda: sys.stderr.write('\033[0m')
+
+    def error(self, msg):
+        with self.lock:
+            self.__set_error_color()
+            sys.stderr.write(msg)
+            self.__reset_color()
+    
+    def success(self, msg):
+        with self.lock:
+            self.__set_success_color()
+            sys.stderr.write(msg)
+            self.__reset_color()
+
+    def info(self, msg):
+        with self.lock:
+            sys.stderr.write(msg)
+console = Console()
+
+
 class BoundedThreadingServer(SocketServer.ThreadingTCPServer, object):  # object for super
     allow_reuse_address = True
     daemon_threads = True
@@ -60,29 +99,6 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
         os.unlink(rfn)
     fout = AsyncFile(rfn)
 
-    # from the great Goagent
-    __set_error_color = lambda c : None
-    __set_success_color = lambda c: None
-    __reset_color = lambda c : None
-    if hasattr(sys.stderr, 'isatty') and sys.stderr.isatty():
-        if os.name == 'nt':
-            def __set_error_color(cls):
-                SetConsoleTextAttribute = ctypes.windll.kernel32.SetConsoleTextAttribute
-                GetStdHandle = ctypes.windll.kernel32.GetStdHandle
-                SetConsoleTextAttribute(GetStdHandle(-11), 0x04)
-            def __set_success_color(cls):
-                SetConsoleTextAttribute = ctypes.windll.kernel32.SetConsoleTextAttribute
-                GetStdHandle = ctypes.windll.kernel32.GetStdHandle
-                SetConsoleTextAttribute(GetStdHandle(-11), 0x02)
-            def __reset_color(cls):
-                SetConsoleTextAttribute = ctypes.windll.kernel32.SetConsoleTextAttribute
-                GetStdHandle = ctypes.windll.kernel32.GetStdHandle
-                SetConsoleTextAttribute(GetStdHandle(-11), 0x07)
-        elif os.name == 'posix':
-            __set_error_color = lambda c : sys.stderr.write('\033[31m')
-            __set_success_color = lambda c : sys.stderr.write('\033[32m')
-            __reset_color = lambda c : sys.stderr.write('\033[0m')
-
     def do_GET(self):
         ip = self.client_address[0]
         if ip in studentof:
@@ -101,7 +117,7 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
                     self.headers['Authorization'], e)
             self.send_401()
         except Exception as e:
-            self.log_logical_error('Client sends "Authorization: %s", %s',
+            self.log_error('Client sends "Authorization: %s", %s',
                     self.headers['Authorization'], e)
             self.send_401()
         else:
@@ -115,7 +131,7 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
                 self.log_message('%s, %s', sid, e)
                 self.send_401('Wrong username or password')
             except Exception as e:
-                self.log_logical_error('An error occured while %s is logging in "%s"', sid, e)
+                self.log_error('An error occured while %s is logging in "%s"', sid, e)
                 self.send_401()
             else:
                 self.fout.write('%s\t%-9s\t%-12s\t%s\n' % (self.log_date_time_string(),
@@ -164,20 +180,22 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
         # override, otherwise it will spread bullshit all over my screen
         pass
 
-    def log_logical_error(self, format, *args): # to distinguish from the std log_error
-        self.__set_error_color()
-        self.log_message(format, *args)
-        self.__reset_color()
+    def log_error(self, format, *args):
+        msg = self.format_message(format, *args)
+        console.error(msg)
 
     def log_success(self, format, *args):
-        self.__set_success_color()
-        self.log_message(format, *args)
-        self.__reset_color()
-
+        msg = self.format_message(format, *args)
+        console.success(msg)
 
     def log_message(self, format, *args):
-        sys.stderr.write("%s - [%s] %s\n" % (self.log_date_time_string(),
-                self.client_address[0], format%args))
+        msg = self.format_message(format, *args)
+        console.info(msg)
+
+    def format_message(self, format, *args):
+        return "%s - [%s] %s\n" % (self.log_date_time_string(),
+                self.client_address[0], format%args)
+
 
 class StudentMixin(object):
     ua = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; Schindler'sList/0.1)"
