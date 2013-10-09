@@ -239,6 +239,7 @@ def whats_my_sexual_ip():
     try:
         # Pretty smart to use UDP, connection in UDP will (almostly)always success,
         # and no data exchange, correct me if you can.
+        # from goagent
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
         s.connect(('8.8.8.8', 53))
         return s.getsockname()[0]
