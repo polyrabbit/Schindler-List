@@ -73,10 +73,17 @@ class BoundedThreadingServer(SocketServer.ThreadingTCPServer, object):  # object
         super(BoundedThreadingServer, self).__init__(*args, **kwargs)
         self.sema = threading.Semaphore(self.maxconnections)
 
-    def process_request(self, request, client_address):
-        with self.sema:
-            super(BoundedThreadingServer, self).process_request(
+    def process_request_thread(self, request, client_address):
+        try:
+            super(BoundedThreadingServer, self).process_request_thread(
                     request, client_address)
+        finally:
+            self.sema.release()
+
+    def process_request(self, request, client_address):
+        self.sema.acquire()
+        super(BoundedThreadingServer, self).process_request(
+                request, client_address)
 
 class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
 
