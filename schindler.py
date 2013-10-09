@@ -103,7 +103,7 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
         except HeartBrokenError as e:
             self.log_message('Client sends "Authorization: %s", %s',
                     self.headers['Authorization'], e)
-            self.send_401()
+            self.send_401(str(e))
         except Exception as e:
             self.log_error('Client sends "Authorization: %s", %s',
                     self.headers['Authorization'], e)
