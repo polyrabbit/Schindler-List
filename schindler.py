@@ -73,10 +73,17 @@ class BoundedThreadingServer(SocketServer.ThreadingTCPServer, object):  # object
         super(BoundedThreadingServer, self).__init__(*args, **kwargs)
         self.sema = threading.Semaphore(self.maxconnections)
 
-    def process_request(self, request, client_address):
-        with self.sema:
-            super(BoundedThreadingServer, self).process_request(
+    def process_request_thread(self, request, client_address):
+        try:
+            super(BoundedThreadingServer, self).process_request_thread(
                     request, client_address)
+        finally:
+            self.sema.release()
+
+    def process_request(self, request, client_address):
+        self.sema.acquire()
+        super(BoundedThreadingServer, self).process_request(
+                request, client_address)
 
 class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
 
@@ -103,7 +110,7 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
         except HeartBrokenError as e:
             self.log_message('Client sends "Authorization: %s", %s',
                     self.headers['Authorization'], e)
-            self.send_401()
+            self.send_401(str(e))
         except Exception as e:
             self.log_error('Client sends "Authorization: %s", %s',
                     self.headers['Authorization'], e)
@@ -239,6 +246,7 @@ def whats_my_sexual_ip():
     try:
         # Pretty smart to use UDP, connection in UDP will (almostly)always success,
         # and no data exchange, correct me if you can.
+        # from goagent
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
         s.connect(('8.8.8.8', 53))
         return s.getsockname()[0]
