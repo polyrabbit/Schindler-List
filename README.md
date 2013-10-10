@@ -12,7 +12,7 @@
 * Windows
 
     如果你没有Python解释器，或者你不知道什么是Python，请先[下载](http://python.org/ftp/python/2.7.5/python-2.7.5.msi)安装（这就像你想打开word文档必须要先安装office一样）。And then,
-    1. 双击运行schindler.py，你会看到一个黑窗口，不用怕，那不是黑洞，上面写着`Server is listening on x.x.x.x:80`，x.x.x.x应该是四个具体的数字，
+    1. [下载](https://github.com/polyrabbit/Schindler-List/archive/master.zip)并解压，进入到程序目录后双击运行schindler.py，你会看到一个黑窗口，不用怕，那不是黑洞，上面写着`Server is listening on x.x.x.x:80`，x.x.x.x应该是四个具体的数字，
 那代表了你的IP。
     2. 将这个IP地址告诉你的学生，让他们来访问这个IP（就像访问www.baidu.com一样），并让他们在浏览器弹出的窗口上填入自己在[教务网](http://jw.dhu.edu.cn)的学号和密码，研究生请填入[信息门户](http://my.dhu.edu.cn)的账号。
     3. 没有第三步。
