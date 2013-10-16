@@ -93,7 +93,9 @@ class AuthenticationHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
     # Put Schindler'sList.txt where you start the program
     # rfn = os.path.join(os.path.dirname(__file__), result_fname)
     # 0 means unbuffered, 1 means line buffered
-    fout = open(result_fname, 'w', 1)
+    
+    # 10/16/2013 line buffered won't work on some Windows(like ones in 258-lab)
+    fout = open(result_fname, 'w', 0)
 
     def do_GET(self):
         ip = self.client_address[0]
