@@ -43,3 +43,7 @@
 
 ### Liscense
 LGPL v3
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/polyrabbit/schindler-list/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
